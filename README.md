@@ -1,9 +1,8 @@
-# Repo Template
-Repo template, using Codespaces and GitPod
+# Microsoft Fabric Test
 
-Template para repositórios, usando Codespaces e GitPod
+Repositório para testes, da certificação DP-600 - Fabric Analytics Engineer Associate.
 
-## Extensions
+## Extensões habilitadas
 * AWS CLI
 * Microsoft PowerShell
 * Git Graph
@@ -12,7 +11,4 @@ Template para repositórios, usando Codespaces e GitPod
 * GitHub Copilot
 * GitHub Copilot Chat
 * github markdown preview
-
-## Extras
-Preconfigured AWS tokens (via Repository Secrets) 
 
