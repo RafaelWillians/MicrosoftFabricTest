@@ -115,7 +115,7 @@ df.write.format("delta").saveAsTable("external_products", path=dfPath)
 
 # MARKDOWN ********************
 
-# Then drop both tables, to indicate that all files in the managed table were deleted, while the external table was deleted but the parquet and log files were kept.
+# Then drops both tables, to indicate that all files in the managed table were deleted, while the external table was deleted but the parquet and log files were kept.
 
 # CELL ********************
 
@@ -127,5 +127,278 @@ df.write.format("delta").saveAsTable("external_products", path=dfPath)
 
 # META {
 # META   "language": "sparksql",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# MARKDOWN ********************
+
+# Creates a Delta table using SQL
+
+# CELL ********************
+
+# MAGIC %%sql
+# MAGIC CREATE TABLE products
+# MAGIC USING DELTA
+# MAGIC LOCATION 'Files/external_products';
+
+# METADATA ********************
+
+# META {
+# META   "language": "sparksql",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# MARKDOWN ********************
+
+# Then select some data, just for testing.
+
+# CELL ********************
+
+# MAGIC %%sql
+# MAGIC SELECT * FROM products
+# MAGIC LIMIT 100;
+
+# METADATA ********************
+
+# META {
+# META   "language": "sparksql",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# MARKDOWN ********************
+
+# ## Testing table versioning
+# 
+# Set a 10% price reduction for mountain bikes.
+
+# CELL ********************
+
+# MAGIC %%sql
+# MAGIC UPDATE products
+# MAGIC SET ListPrice = ListPrice * 0.9
+# MAGIC WHERE Category = 'Mountain Bikes';
+
+# METADATA ********************
+
+# META {
+# META   "language": "sparksql",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# MARKDOWN ********************
+
+# Lists the table history.
+
+# CELL ********************
+
+# MAGIC %%sql
+# MAGIC DESCRIBE HISTORY products;
+
+# METADATA ********************
+
+# META {
+# META   "language": "sparksql",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# MARKDOWN ********************
+
+# Get both current and first version (version 0) data from the table
+
+# CELL ********************
+
+delta_table_path = 'Files/external_products'
+
+# Get the current data
+current_data = spark.read.format("delta").load(delta_table_path)
+display(current_data)
+
+# Get the version 0 data
+original_data = spark.read.format("delta").option("versionAsOf", 0).load(delta_table_path)
+display(original_data)
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# MARKDOWN ********************
+
+# Creates a a temporary view, ordered by Category.
+
+# CELL ********************
+
+ %%sql
+ -- Create a temporary view
+ CREATE OR REPLACE TEMPORARY VIEW products_view
+ AS
+     SELECT Category, COUNT(*) AS NumProducts, MIN(ListPrice) AS MinPrice, MAX(ListPrice) AS MaxPrice, AVG(ListPrice) AS AvgPrice
+     FROM products
+     GROUP BY Category;
+
+ SELECT *
+ FROM products_view
+ ORDER BY Category;    
+
+# METADATA ********************
+
+# META {
+# META   "language": "sparksql",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# MARKDOWN ********************
+
+# Gets the top 10 categories by number of products, from the products view.
+
+# CELL ********************
+
+ %%sql
+ SELECT Category, NumProducts
+ FROM products_view
+ ORDER BY NumProducts DESC
+ LIMIT 10;
+
+# METADATA ********************
+
+# META {
+# META   "language": "sparksql",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# MARKDOWN ********************
+
+# Same query, using PySpark.
+
+# CELL ********************
+
+ from pyspark.sql.functions import col, desc
+
+ df_products = spark.sql("SELECT Category, MinPrice, MaxPrice, AvgPrice FROM products_view").orderBy(col("AvgPrice").desc())
+ display(df_products.limit(6))
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# MARKDOWN ********************
+
+# ## Streaming data with Delta tables
+
+# CELL ********************
+
+from notebookutils import mssparkutils
+from pyspark.sql.types import *
+from pyspark.sql.functions import *
+
+# Create a folder
+inputPath = 'Files/data/'
+mssparkutils.fs.mkdirs(inputPath)
+
+# Create a stream that reads data from the folder, using a JSON schema
+jsonSchema = StructType([
+StructField("device", StringType(), False),
+StructField("status", StringType(), False)
+])
+iotstream = spark.readStream.schema(jsonSchema).option("maxFilesPerTrigger", 1).json(inputPath)
+
+# Write some event data to the folder
+device_data = '''{"device":"Dev1","status":"ok"}
+{"device":"Dev1","status":"ok"}
+{"device":"Dev1","status":"ok"}
+{"device":"Dev2","status":"error"}
+{"device":"Dev1","status":"ok"}
+{"device":"Dev1","status":"error"}
+{"device":"Dev2","status":"ok"}
+{"device":"Dev2","status":"error"}
+{"device":"Dev1","status":"ok"}'''
+
+mssparkutils.fs.put(inputPath + "data.txt", device_data, True)
+
+print("Source stream created...")
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# CELL ********************
+
+ # Write the stream to a delta table
+ delta_stream_table_path = 'Tables/iotdevicedata'
+ checkpointpath = 'Files/delta/checkpoint'
+ deltastream = iotstream.writeStream.format("delta").option("checkpointLocation", checkpointpath).start(delta_stream_table_path)
+ print("Streaming to delta sink...")
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# CELL ********************
+
+ %%sql
+ SELECT * FROM IotDeviceData;
+
+# METADATA ********************
+
+# META {
+# META   "language": "sparksql",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# CELL ********************
+
+ # Add more data to the source stream
+ more_data = '''{"device":"Dev1","status":"ok"}
+ {"device":"Dev1","status":"ok"}
+ {"device":"Dev1","status":"ok"}
+ {"device":"Dev1","status":"ok"}
+ {"device":"Dev1","status":"error"}
+ {"device":"Dev2","status":"error"}
+ {"device":"Dev1","status":"ok"}'''
+
+ mssparkutils.fs.put(inputPath + "more-data.txt", more_data, True)
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# CELL ********************
+
+ %%sql
+ SELECT * FROM IotDeviceData;
+
+# METADATA ********************
+
+# META {
+# META   "language": "sparksql",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# MARKDOWN ********************
+
+# Stops the stream.
+
+# CELL ********************
+
+ deltastream.stop()
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
 # META   "language_group": "synapse_pyspark"
 # META }
