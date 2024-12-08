@@ -2,6 +2,8 @@
 
 Repositório para testes, da certificação DP-600 - Fabric Analytics Engineer Associate.
 
+### [Exemplo com Apache Spark](./spark/)
+
 ## Extensões habilitadas
 * AWS CLI
 * Microsoft PowerShell
