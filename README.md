@@ -4,6 +4,8 @@ Repositório para testes, da certificação DP-600 - Fabric Analytics Engineer A
 
 ### [Exemplo com Apache Spark](./spark/)
 
+### [Exemplo usando Delta Tables](./deltaTables/)
+
 ## Extensões habilitadas
 * AWS CLI
 * Microsoft PowerShell
