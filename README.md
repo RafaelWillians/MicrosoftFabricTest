@@ -6,6 +6,8 @@ Repositório para testes, da certificação DP-600 - Fabric Analytics Engineer A
 
 ### [Exemplo usando Delta Tables](./deltaTables/)
 
+### [Exemplo de Pipeline de dados (ETL)](./dataPipeline/)
+
 ## Extensões habilitadas
 * AWS CLI
 * Microsoft PowerShell
