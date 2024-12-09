@@ -2,13 +2,15 @@
 
 Repositório para testes, da certificação DP-600 - Fabric Analytics Engineer Associate.
 
-### [Exemplo com Apache Spark](./spark/)
+## Exemplos práticos
 
-### [Exemplo usando Delta Tables](./deltaTables/)
+### [Apache Spark](./spark/)
 
-### [Exemplo de Pipeline de dados (ETL)](./dataPipeline/)
+### [Delta Tables](./deltaTables/)
 
-### [Exemplo com Dataflow](./dataflow/)
+### [Pipeline de dados (ETL)](./dataPipeline/)
+
+### [Dataflow](./dataflow/)
 
 ## Extensões habilitadas
 * AWS CLI
