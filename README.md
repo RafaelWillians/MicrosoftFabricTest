@@ -8,6 +8,8 @@ Repositório para testes, da certificação DP-600 - Fabric Analytics Engineer A
 
 ### [Exemplo de Pipeline de dados (ETL)](./dataPipeline/)
 
+### [Exemplo com Dataflow](./dataflow/)
+
 ## Extensões habilitadas
 * AWS CLI
 * Microsoft PowerShell
