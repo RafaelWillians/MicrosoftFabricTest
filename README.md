@@ -12,6 +12,8 @@ Repositório para testes, da certificação DP-600 - Fabric Analytics Engineer A
 
 ### [Dataflow](./dataflow/)
 
+### [Data Warehouse](./dataWarehouse/)
+
 ## Extensões habilitadas
 * AWS CLI
 * Microsoft PowerShell
