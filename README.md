@@ -14,6 +14,8 @@ Repositório para testes, da certificação DP-600 - Fabric Analytics Engineer A
 
 ### [Data Warehouse](./dataWarehouse/)
 
+### [Power BI - cálculos com DAX](./PowerBI_DAX/)
+
 ## Extensões habilitadas
 * AWS CLI
 * Microsoft PowerShell
